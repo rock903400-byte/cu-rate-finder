@@ -1,0 +1,22 @@
+# Database (個資保護)
+*.MDB
+*.ldb
+*.7z
+
+# Config & Secrets (金鑰保護)
+cub/config.json
+config/*.json
+.env
+
+# Logs (執行紀錄)
+cub/sync_log.txt
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Subagent Memory
+.gemini/
+MEMORY.md

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>儲互社數位服務網</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%231b4332%22><path d=%22M3 10l9-7 9 7v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10z%22/><path d=%22M9 21v-6h6v6%22 fill=%22%23ffffff%22/><path d=%22M12 3c.5-1.5 2-3 4-3 1.5 0 3 1.5 3 3s-1.5 3-3 3c-2 0-3.5-1.5-4-3z%22 fill=%22%2340916c%22/></svg>">
+  
+  <!-- SDK 與 框架 -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <!-- 字體與樣式 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" v-cloak>
+    <!-- 頁首 -->
+    <header>
+      <div class="header-brand">
+        <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <!-- 屋頂與主體：使用帶有透明度的白色，營造質感 -->
+          <path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10z" fill="rgba(255,255,255,0.9)"/>
+          <!-- 窗戶/門：改用深色調與背景呼應，增加細節 -->
+          <path d="M9 21v-6h6v6" fill="var(--forest)" opacity="0.3"/>
+          <!-- 裝飾葉子：亮綠色點綴 -->
+          <path d="M12 3c.5-1.5 2-3 4-3 1.5 0 3 1.5 3 3s-1.5 3-3 3c-2 0-3.5-1.5-4-3z" fill="var(--mint)"/>
+          <!-- 額外高光線條 -->
+          <path d="M3 10l9-7 9 7" fill="none" stroke="white" stroke-width="0.5"/>
+        </svg>
+        <div class="header-titles">
+          <h1>儲互社數位服務網</h1>
+          <span class="club-name">{{ state.clubName }}</span>
+        </div>
+      </div>
+      <div class="user-box" @click="state.showAccountMenu = true">
+        <div class="user-avatar">
+          <img v-if="state.lineProfile.pictureUrl" :src="state.lineProfile.pictureUrl">
+        </div>
+        <span>{{ state.memberProfile ? state.memberProfile.name : state.lineProfile.displayName }}</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- 首頁：財務 Dashboard -->
+      <div id="p-home" class="page" :class="{ active: state.currentPage === 'home' }">
+        <div v-if="state.memberProfile" class="dashboard">
+          <div class="db-label">我的股金總額</div>
+          <div class="db-total" :class="{ skeleton: state.isLoading }">
+            {{ state.isLoading ? '$000,000' : '$' + state.memberProfile.stock.toLocaleString() }}
+          </div>
+          <div class="db-grid">
+            <div class="db-item">
+              <div class="db-label">放款餘額</div>
+              <div class="db-val" :class="{ skeleton: state.isLoading }">
+                {{ state.isLoading ? '$0,000' : '$' + state.memberProfile.loan.toLocaleString() }}
+              </div>
+            </div>
+            <div class="db-item">
+              <div class="db-label">備轉金</div>
+              <div class="db-val" :class="{ skeleton: state.isLoading }">
+                {{ state.isLoading ? '$0,000' : '$' + state.memberProfile.reserve.toLocaleString() }}
+              </div>
+            </div>
+          </div>
+          <div style="font-size:10px; margin-top:15px; opacity:0.6;">資料更新於 {{ state.memberProfile.update }}</div>
+        </div>
+        
+        <div v-else class="card" style="background:var(--amber-l); border:1px solid var(--amber);">
+          <div class="card-title">👋 歡迎使用</div>
+          <p style="font-size:13px; color:#7a5c0a; margin-bottom:15px;">您尚未完成身分認證，認證後即可查看個人財務資料並使用各項數位服務。</p>
+          <button class="btn-main" @click="navigate('bind')" style="background:var(--amber);">前往身分認證</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🌱 關於我們的初心</div>
+          <p style="font-size:14px; color:var(--text-light); line-height:1.7;">
+            生活不該只有生存，還要能看見選擇的自由。<br><br>
+            「自助互助」是我們給彼此最溫暖的承諾。透過數位隨身服務，讓你隨時看見自己的積累與成長。在這裡，儲蓄不只是數字，更是你追求夢想的底氣。在實踐理想的路上，儲互社是你最靠譜的夥伴，讓我們一起定義更自在的生活方式。
+          </p>
+        </div>
+      </div>
+
+      <!-- 認證 -->
+      <div id="p-bind" class="page" :class="{ active: state.currentPage === 'bind' }">
+        <div class="card">
+          <div class="card-title">👤 社員身分認證</div>
+          <p style="font-size:12px; color:var(--text-light); margin-bottom:15px;">請填寫以下資訊（* 為必填）</p>
+          <div class="form-group">
+            <label class="form-label">社員編號 <span style="color:var(--red)">*</span></label>
+            <input type="text" inputmode="numeric" v-model="bindForm.num" class="form-input" placeholder="請輸入您的社員編號">
+          </div>
+          <div class="form-group">
+            <label class="form-label">身分證末四碼 <span style="color:var(--red)">*</span></label>
+            <input type="password" inputmode="numeric" v-model="bindForm.last4" class="form-input" placeholder="請輸入身分證末4位數字" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label class="form-label">聯絡手機 <span style="color:var(--red)">*</span></label>
+            <input type="tel" inputmode="tel" v-model="bindForm.phone" class="form-input" placeholder="用於對方與您聯繫">
+          </div>
+          <div class="form-group">
+            <label class="form-label">LINE ID (選填)</label>
+            <input type="text" v-model="bindForm.lineId" class="form-input" placeholder="方便對方直接加好友">
+          </div>
+          <button class="btn-main" @click="submitBind" :disabled="state.isSubmitting">
+            {{ state.isSubmitting ? '處理中...' : '執行綁定' }}
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 彈窗與遮罩 -->
+    <div id="toast" v-if="state.toast.show">{{ state.toast.message }}</div>
+    <div v-if="state.isLoading" class="loading-overlay">
+      <div style="text-align: center;">
+        <div class="spinner"></div>
+        <div v-if="typeof state.isLoading === 'string'" style="margin-top: 15px; font-weight: 700; color: var(--forest); text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{{ state.isLoading }}</div>
+      </div>
+    </div>
+
+    <!-- 帳號管理選單 -->
+    <div class="modal-backdrop" v-if="state.showAccountMenu" @click="state.showAccountMenu = false">
+      <div class="account-menu" @click.stop>
+        <div class="menu-header">
+          <h3>👤 帳號管理</h3>
+          <button class="close-btn" @click="state.showAccountMenu = false">✕</button>
+        </div>
+        <div class="member-list">
+          <div class="menu-label">已綁定社員 (點擊切換)</div>
+          <div v-for="m in state.memberProfiles" :key="m.num" 
+               class="member-item" :class="{ active: state.memberProfile && state.memberProfile.num === m.num }"
+               @click="switchMember(m)">
+            <div class="member-info">
+              <div class="m-name">{{ m.name }}</div>
+              <div class="m-num">編號：{{ m.num }}</div>
+            </div>
+            <div class="active-tag" v-if="state.memberProfile && state.memberProfile.num === m.num">使用中</div>
+          </div>
+        </div>
+        <div class="menu-actions">
+          <button class="menu-btn" @click="navigate('bind'); state.showAccountMenu = false;">
+            <span>➕</span> 綁定其他家屬社員
+          </button>
+          <button v-if="state.memberProfile" class="menu-btn btn-danger" @click="submitUnbind">
+            <span>🚪</span> 解除綁定當前社員 (登出)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
