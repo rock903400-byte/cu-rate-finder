@@ -1,5 +1,7 @@
 # 利率線上查詢工具 (Rate Finder)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > 一站查完各銀行 / 信合社利率，長輩也能用
 
 ## 📖 背景
